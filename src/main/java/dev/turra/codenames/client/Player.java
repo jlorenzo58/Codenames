@@ -14,6 +14,7 @@ public class Player extends Client {
 	public enum Team{
 		RED, BLUE;
 	}
+	// this is a comment
 
 	public enum Role{
 		OPERATIVE, SPYMASTER;
