@@ -1,11 +1,11 @@
 package dev.turra.codenames.client.network;
 
+import dev.turra.codenames.client.Main;
 import dev.turra.codenames.common.network.Packet;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -18,33 +18,29 @@ public class Client implements Runnable {
 	private ObjectOutputStream out;
 	private ObjectInputStream in;
 
-	private boolean running = false;
-	private PacketListener listener;
+	public boolean running = false;
+	private IPacketListener listener;
 
 	public Client(String host, int port) {
 		this.host = host;
 		this.port = port;
 	}
 
-	public final void connect() {
-		try {
-			socket = new Socket(host, port);
-			out = new ObjectOutputStream(socket.getOutputStream());
-			in = new ObjectInputStream(socket.getInputStream());
-			listener = new PacketListener();
-			new Thread(this).start();
-		} catch (ConnectException e) {
-			System.out.println("Unable to connect to the server");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	/* Create a connection between the client and the server
+		Assign the packet listener to GameManager to handle incoming packets
+	*/
+	public final void connect() throws IOException{
+		socket = new Socket(host, port);
+		out = new ObjectOutputStream(socket.getOutputStream());
+		in = new ObjectInputStream(socket.getInputStream());
+		listener = Main.manager;
+		new Thread(this).start();
+		System.out.println("Connected to " + host + ":" + port);
 	}
 
 	public final void close() {
 		try {
 			running = false;
-//			RemoveConnectionPacket packet = new RemoveConnectionPacket();
-//			sendObject(packet);
 			in.close();
 			out.close();
 			socket.close();
@@ -53,7 +49,7 @@ public class Client implements Runnable {
 		}
 	}
 
-	public void sendObject(Packet packet) {
+	public void sendPacket(Packet packet) {
 		try {
 			out.writeObject(packet);
 		} catch (IOException e) {
