@@ -2,16 +2,16 @@ package dev.turra.codenames.client.mechanics;
 
 import dev.turra.codenames.client.gui.GameUI;
 import dev.turra.codenames.client.network.IPacketListener;
+import dev.turra.codenames.common.CardColor;
 import dev.turra.codenames.common.Role;
 import dev.turra.codenames.common.Team;
-import dev.turra.codenames.common.network.cb.PacketClientChat;
-import dev.turra.codenames.common.network.cb.PacketClientUpdatePlayers;
+import dev.turra.codenames.common.network.Packet;
+import dev.turra.codenames.common.network.cb.*;
 import dev.turra.codenames.common.network.sb.PacketServerLogin;
 import dev.turra.codenames.common.network.sb.PacketServerTeamRole;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.HashMap;
 
 public class GameManager implements IPacketListener {
 
@@ -38,21 +38,28 @@ public class GameManager implements IPacketListener {
 		player.setTeam(team);
 		player.setRole(role);
 		player.sendPacket(new PacketServerTeamRole(team, role));
+		ui.hideTeamButtons();
+		ui.showRoleUI(role);
 	}
 
 	public Player getPlayer() {
 		return player;
 	}
 
-	// Handle incoming packets
 	@Override
-	public void received(Object p) {
+	public void received(Packet p) {
 		if (p instanceof PacketClientChat packet){
-			System.out.println(packet.sender + ": " + packet.message);
+			System.out.println(packet.getSender() + ": " + packet.getMessage());
 		} else if (p instanceof PacketClientUpdatePlayers packet){
-			// Get the label that holds players from packet's team and role
-			JTextArea label = packet.team == Team.RED ? packet.role == Role.OPERATIVE ? ui.redOperatives : ui.redSpymasters : packet.role == Role.OPERATIVE ? ui.blueOperatives : ui.blueSpymasters;
-			label.setText(packet.players);
+			JTextArea label = packet.getTeam() == Team.RED ? packet.getRole() == Role.OPERATIVE ? ui.redOperatives : ui.redSpymasters : packet.getRole() == Role.OPERATIVE ? ui.blueOperatives : ui.blueSpymasters;
+			label.setText(packet.getPlayers());
+		} else if (p instanceof PacketClientCard packet){
+			ui.updateCard(packet.getX(), packet.getY(), packet.getWord(), packet.getColor() == null ? CardColor.EMPTY.getColor() : packet.getColor().getColor());
+		} else if (p instanceof PacketClientCardReveal packet){
+	        ui.revealCard(packet.getX(), packet.getY(), packet.getColor().getColor());
+		} else if (p instanceof PacketClientTeamTurn packet){
+			ui.setTurn(packet.getTeam());
+			ui.clearHint();
 		}
 	}
 }
