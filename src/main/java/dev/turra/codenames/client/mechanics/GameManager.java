@@ -7,6 +7,7 @@ import dev.turra.codenames.common.Role;
 import dev.turra.codenames.common.Team;
 import dev.turra.codenames.common.network.Packet;
 import dev.turra.codenames.common.network.cb.*;
+import dev.turra.codenames.common.network.sb.PacketServerHint;
 import dev.turra.codenames.common.network.sb.PacketServerLogin;
 import dev.turra.codenames.common.network.sb.PacketServerTeamRole;
 
@@ -60,6 +61,25 @@ public class GameManager implements IPacketListener {
 		} else if (p instanceof PacketClientTeamTurn packet){
 			ui.setTurn(packet.getTeam());
 			ui.clearHint();
+			ui.setAnnouncerText(packet.getTeam().getName() + " team is giving a hint...", packet.getTeam().getColor().getColor());
+		} else if (p instanceof PacketClientHint packet){
+			ui.setHint(packet.getHint(), packet.getWordAmount());
+			ui.setAnnouncerText(packet.getTeam().getName() + " team is guessing...", packet.getTeam().getColor().getColor());
+		} else if (p instanceof PacketClientAnnouncer packet){
+			ui.setAnnouncerText(packet.getMessage(), packet.getColor());
 		}
 	}
+
+	// If wordAmountString is an integer, then onSuccess will run, which will clear the text fields.
+	public void sendHint(String hint, String wordAmountString, Runnable onSuccess){
+		int wordAmount;
+		try {
+			wordAmount = Integer.parseInt(wordAmountString);
+		}catch (NumberFormatException e){
+			return;
+		}
+		player.sendPacket(new PacketServerHint(hint, wordAmount));
+		onSuccess.run();
+	}
+
 }

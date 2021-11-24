@@ -48,8 +48,9 @@ public class GameUI extends JFrame{
 	private JButton joinRedSpymastersButton;
 	public JPanel boardPanel;
 	private JLabel currentTurnLabel;
+	private JLabel announcerText;
 
-	public CardUI[][] board = new CardUI[5][5];
+	private CardUI[][] board = new CardUI[5][5];
 
 	public GameUI(GameManager gameManager) {
 		manager = gameManager;
@@ -92,9 +93,11 @@ public class GameUI extends JFrame{
 		joinBlueSpymastersButton.addActionListener(e -> manager.joinTeam(Team.BLUE, Role.SPYMASTER));
 		joinRedOperativesButton.addActionListener(e -> manager.joinTeam(Team.RED, Role.OPERATIVE));
 		joinRedSpymastersButton.addActionListener(e -> manager.joinTeam(Team.RED, Role.SPYMASTER));
-		submitButton.addActionListener(e -> {
 
-		});
+		submitButton.addActionListener(e -> manager.sendHint(hint.getText(), hintWordAmount.getText(), () -> {
+			hint.setText("");
+			hintWordAmount.setText("");
+		}));
 
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 5; j++) {
@@ -121,6 +124,8 @@ public class GameUI extends JFrame{
 	}
 
 	public void updateCard(int x, int y, String word, Color color){
+		// debug
+		System.out.println("Updating card " + x + "x" + y + " to " + word);
 		board[x][y].setWord(word);
 		if(color != null)
         	board[x][y].getWordLabel().setForeground(color);
@@ -148,6 +153,11 @@ public class GameUI extends JFrame{
 	public void setTurn(Team team){
 		currentTurnLabel.setText("Current Turn: " + team.toString());
 		currentTurnLabel.setForeground(team.getColor().getColor());
+	}
+
+	public void setAnnouncerText(String text, Color color){
+		announcerText.setText(text);
+        announcerText.setForeground(color);
 	}
 
 	public static void main(String[] args) {
