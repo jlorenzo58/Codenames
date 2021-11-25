@@ -49,6 +49,8 @@ public class GameUI extends JFrame{
 	public JPanel boardPanel;
 	private JLabel currentTurnLabel;
 	private JLabel announcerText;
+	public JLabel blueScore;
+	public JLabel redScore;
 
 	private CardUI[][] board = new CardUI[5][5];
 

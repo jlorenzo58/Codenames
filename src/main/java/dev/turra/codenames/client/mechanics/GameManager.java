@@ -67,6 +67,12 @@ public class GameManager implements IPacketListener {
 			ui.setAnnouncerText(packet.getTeam().getName() + " team is guessing...", packet.getTeam().getColor().getColor());
 		} else if (p instanceof PacketClientAnnouncer packet){
 			ui.setAnnouncerText(packet.getMessage(), packet.getColor());
+		} else if (p instanceof PacketClientUpdateScore packet){
+			if(packet.getTeam() == Team.RED){
+				ui.redScore.setText(packet.getScore() + "");
+			}else{
+				ui.blueScore.setText(packet.getScore() + "");
+			}
 		}
 	}
 
