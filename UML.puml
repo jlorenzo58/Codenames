@@ -1,0 +1,285 @@
+@startuml
+class Client.gui.GameUI {
+- GameManager manager
+- CardLayout layout
+- JPanel mainPanel
+- JPanel gamePanel
+- JPanel loginPanel
+- JButton connectButton
+- JTextField inputUsername
+- JTextField inputIP
+- JTextField inputPort
+- JLabel errorText
+- JPanel spymasterUI
+- JTextField hint
+- JTextField hintWordAmount
+- JPanel operativeUI
+- JLabel givenHint
+- JButton submitButton
++ JTextArea blueOperatives
++ JTextArea blueSpymasters
++ JTextArea redOperatives
++ JTextArea redSpymasters
+- JButton joinBlueOperativesButton
+- JButton joinBlueSpymastersButton
+- JButton joinRedOperativesButton
+- JButton joinRedSpymastersButton
++ JPanel boardPanel
+- JLabel currentTurnLabel
+- JLabel announcerText
++ JLabel blueScore
++ JLabel redScore
+- CardUI[][] board
+- void loginWindow()
+- void gameWindow()
++ void hideTeamButtons()
++ void showRoleUI(Role)
++ void updateCard(int,int,String,Color)
++ void cardClicked(int,int)
++ void revealCard(int,int,Color)
++ void setHint(String,int)
++ void clearHint()
++ void setTurn(Team)
++ void setAnnouncerText(String,Color)
++ {static} void main(String[])
+}
+class Client.gui.CardUI {
+~ GameUI ui
++ int x
++ int y
+- JLabel word
+- Color color
++ JLabel getWordLabel()
++ String getWord()
++ void setWord(String)
++ Color getColor()
++ void setColor(Color)
++ void reveal(Color)
+}
+class Client.mechanics.GameManager {
+- GameUI ui
+- Player player
++ void connectionAttempt(String,String,int)
++ void assignGameUI(GameUI)
++ void joinTeam(Team,Role)
++ Player getPlayer()
++ void received(Packet)
++ void sendHint(String,String,Runnable)
+}
+class Client.Main {
++ {static} GameManager manager
++ {static} void main(String[])
+}
+class Client.network.Client {
+- String host
+- int port
+- Socket socket
+- ObjectOutputStream out
+- ObjectInputStream in
++ boolean running
+- IPacketListener listener
++ void connect()
++ void close()
++ void sendPacket(Packet)
++ void run()
+}
+class Client.mechanics.Player {
+- String name
+- Team team
+- Role role
++ String getName()
++ Team getTeam()
++ void setTeam(Team)
++ Role getRole()
++ void setRole(Role)
+}
+interface Client.network.IPacketListener {
+~ void received(Packet)
+}
+
+class Common.network.cb.PacketClientTeamTurn {
+- Team team
++ Team getTeam()
+}
+class Common.network.cb.PacketClientHint {
+- String hint
+- int wordAmount
+- Team team
++ String getHint()
++ int getWordAmount()
++ Team getTeam()
+}
+class Common.network.sb.PacketServerCardClick {
+- int x
+- int y
++ int getX()
++ int getY()
+}
+class Common.network.sb.PacketServerChat {
+- String message
++ String getMessage()
+}
+class Common.network.cb.PacketClientChat {
+- String sender
+- String message
++ String getSender()
++ String getMessage()
+}
+class Common.network.cb.PacketClientCard {
+- int x
+- int y
+- String word
+- CardColor color
++ int getX()
++ int getY()
++ String getWord()
++ CardColor getColor()
+}
+class Common.network.cb.PacketClientAnnouncer {
+- String message
+- Color color
++ String getMessage()
++ Color getColor()
+}
+class Common.network.cb.PacketClientUpdatePlayers {
+- Team team
+- Role role
+- String players
++ Team getTeam()
++ Role getRole()
++ String getPlayers()
+}
+class Common.network.cb.PacketClientCardReveal {
+- int x
+- int y
+- CardColor color
++ int getX()
++ int getY()
++ CardColor getColor()
+}
+class Common.network.sb.PacketServerHint {
+- String hint
+- int wordAmount
++ String getHint()
++ int getWordAmount()
+}
+class Common.network.sb.PacketServerLogin {
+- String name
++ String getName()
+}
+class Common.network.Packet {
+- {static} long serialVersionUID
+}
+class Common.network.cb.PacketClientUpdateScore {
+- Team team
+- int score
++ Team getTeam()
++ int getScore()
+}
+class Common.network.sb.PacketServerTeamRole {
+- Team team
+- Role role
++ Team getTeam()
++ Role getRole()
+}
+
+interface Server.IPacketListener {
+~ void received(Packet,Connection)
+}
+class Server.Connection {
+- Socket socket
+- ObjectInputStream in
+- ObjectOutputStream out
++ int id
+- IPacketListener listener
+- boolean running
++ void run()
++ void close()
++ void sendPacket(Object)
+}
+class Server.Main {
++ {static} GameManager manager
++ {static} void main(String[])
+}
+class Server.Server {
+- int port
+- ServerSocket serverSocket
+- boolean running
+- int id
++ void start()
++ void run()
+- void initSocket(Socket)
++ void shutdown()
+}
+class Server.game.Card {
+- int x
+- int y
+- String word
+- CardColor color
+- boolean isRevealed
++ int getX()
++ int getY()
++ String getWord()
++ CardColor getColor()
++ boolean isRevealed()
++ void setRevealed(boolean)
+}
+class Server.game.Player {
+~ Connection connection
+~ String name
++ Team team
++ Role role
++ Connection getConnection()
++ String getName()
+}
+class Server.game.GameManager {
+- List<String> words
+- HashMap<Integer,Player> players
+- Card[][] board
+- Team currentTurn
+- int totalNumberOfGuesses
+- int numberOfGuesses
+- boolean debug
++ void switchTeam(int,Team,Role)
++ void generateBoard()
++ void sendCardPackets(Player)
++ void playerQuit(int)
++ void sendToAll(Packet)
++ void received(Packet,Connection)
+- void receiveHint(Connection,PacketServerHint)
+- void clickCard(Connection,PacketServerCardClick)
+- void updateScores(Player)
+- int getRemainingCards(Team)
+- void switchTurn()
+- void announce(String,Color)
+- void debug(String)
+}
+
+
+Server.Runnable <|.. Server.Connection
+Server.Runnable <|.. Server.Server
+Server.IPacketListener <|.. Server.game.GameManager
+
+
+
+Client.gui.JFrame <|-- Client.gui.GameUI
+Client.gui.JPanel <|-- Client.gui.CardUI
+Client.network.IPacketListener <|.. Client.mechanics.GameManager
+Client.network.Runnable <|.. Client.network.Client
+Client.network.Client <|-- Client.mechanics.Player
+
+Common.network.Packet <|-- Common.network.cb.PacketClientTeamTurn
+Common.network.Packet <|-- Common.network.cb.PacketClientHint
+Common.network.Packet <|-- Common.network.sb.PacketServerCardClick
+Common.network.Packet <|-- Common.network.sb.PacketServerChat
+Common.network.Packet <|-- Common.network.cb.PacketClientChat
+Common.network.Packet <|-- Common.network.cb.PacketClientCard
+Common.network.Packet <|-- Common.network.cb.PacketClientAnnouncer
+Common.network.Packet <|-- Common.network.cb.PacketClientUpdatePlayers
+Common.network.Packet <|-- Common.network.cb.PacketClientCardReveal
+Common.network.Packet <|-- Common.network.sb.PacketServerHint
+Common.network.Packet <|-- Common.network.sb.PacketServerLogin
+java.io.Serializable <|.. Common.network.Packet
+Common.network.Packet <|-- Common.network.cb.PacketClientUpdateScore
+Common.network.Packet <|-- Common.network.sb.PacketServerTeamRole
+@enduml
