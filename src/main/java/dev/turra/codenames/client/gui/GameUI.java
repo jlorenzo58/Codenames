@@ -3,12 +3,17 @@ package dev.turra.codenames.client.gui;
 import dev.turra.codenames.client.mechanics.GameManager;
 import dev.turra.codenames.common.Role;
 import dev.turra.codenames.common.Team;
+import dev.turra.codenames.common.network.cb.PacketClientCardReveal;
+import dev.turra.codenames.common.network.cb.PacketClientHint;
 import dev.turra.codenames.common.network.sb.PacketServerCardClick;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
+/**
+ * Represents the entire game UI.
+ */
 public class GameUI extends JFrame {
 	private GameManager manager;
 
@@ -42,7 +47,6 @@ public class GameUI extends JFrame {
 	private JButton joinRedOperativesButton;
 	private JButton joinRedSpymastersButton;
 	public JPanel boardPanel;
-	private JLabel currentTurnLabel;
 	private JLabel announcerText;
 	public JLabel blueScore;
 	public JLabel redScore;
@@ -68,6 +72,9 @@ public class GameUI extends JFrame {
 //		board.col
 	}
 
+	/**
+	 * Set the current view to the login view
+	 */
 	private void loginWindow() {
 		layout.show(mainPanel, "login");
 		connectButton.addActionListener(e -> {
@@ -82,6 +89,9 @@ public class GameUI extends JFrame {
 		});
 	}
 
+	/**
+	 * Set the current view to the game view
+	 */
 	private void gameWindow() {
 		boardPanel.setLayout(new GridLayout(5, 5, 2, 2));
 		layout.show(mainPanel, "game");
@@ -105,6 +115,9 @@ public class GameUI extends JFrame {
 		}
 	}
 
+	/**
+	 * Hides the team and roles join buttons
+	 */
 	public void hideTeamButtons() {
 		joinBlueOperativesButton.setVisible(false);
 		joinBlueSpymastersButton.setVisible(false);
@@ -112,6 +125,10 @@ public class GameUI extends JFrame {
 		joinRedSpymastersButton.setVisible(false);
 	}
 
+	/**
+	 * Shows the appropriate UI for the player's role
+	 * @param role
+	 */
 	public void showRoleUI(Role role) {
 		if (role == Role.SPYMASTER) {
 			spymasterUI.setVisible(true);
@@ -120,6 +137,13 @@ public class GameUI extends JFrame {
 		}
 	}
 
+	/**
+	 * Sets the word and color of the card at the x and y coordinates
+	 * @param x The x coordinate of the card
+	 * @param y The y coordinate of the card
+	 * @param word The word to be displayed on the card
+	 * @param color The color of the card
+	 */
 	public void updateCard(int x, int y, String word, Color color) {
 		// debug
 		System.out.println("Updating card " + x + "x" + y + " to " + word);
@@ -128,6 +152,11 @@ public class GameUI extends JFrame {
 			board[x][y].getWordLabel().setForeground(color);
 	}
 
+	/**
+	 * Triggered when a player clicks a card. This will send the {@link PacketServerCardClick} to the server
+	 * @param x The x coordinate of the card
+	 * @param y The y coordinate of the card
+	 */
 	public void cardClicked(int x, int y) {
 		if (manager.getPlayer().getTeam() == null || manager.getPlayer().getRole() == null)
 			return;
@@ -135,30 +164,39 @@ public class GameUI extends JFrame {
 		manager.getPlayer().sendPacket(new PacketServerCardClick(x, y));
 	}
 
+	/**
+	 * Triggered when the client receives {@link PacketClientCardReveal}
+	 * @param x The x coordinate of the card
+	 * @param y The y coordinate of the card
+	 * @param color The color of the card
+	 */
 	public void revealCard(int x, int y, Color color) {
 		board[x][y].reveal(color);
 	}
 
+	/**
+	 * Triggered when the client receives {@link PacketClientHint}
+	 * @param hint The hint
+	 * @param wordAmount The amount of words corresponding to the hint
+	 */
 	public void setHint(String hint, int wordAmount) {
 		givenHint.setText(hint + " " + wordAmount);
 	}
 
+	/**
+	 * Clears the hint text
+	 */
 	public void clearHint() {
 		givenHint.setText("");
 	}
 
-	public void setTurn(Team team) {
-		currentTurnLabel.setText("Current Turn: " + team.toString());
-		currentTurnLabel.setForeground(team.getColor().getColor());
-	}
-
+	/**
+	 * Sets the announcement text. Usually when the turn switches, when players guess the cards, or when a team wins
+	 * @param text The text to be displayed
+	 * @param color The color of the text
+	 */
 	public void setAnnouncerText(String text, Color color) {
 		announcerText.setText(text);
 		announcerText.setForeground(color);
-	}
-
-	public static void main(String[] args) {
-		GameUI ui = new GameUI(new GameManager());
-		ui.gameWindow();
 	}
 }

@@ -14,6 +14,9 @@ import dev.turra.codenames.common.network.sb.PacketServerTeamRole;
 import javax.swing.*;
 import java.io.IOException;
 
+/**
+ * Represents the game manager. Everything that is received from the server is handled here.
+ */
 public class GameManager implements IPacketListener {
 
 	private GameUI ui;
@@ -23,6 +26,13 @@ public class GameManager implements IPacketListener {
 
 	}
 
+	/**
+	 * Attempts to connect to the server
+	 * @param username The username of the player
+	 * @param ip The ip of the server
+	 * @param port The port of the server
+	 * @throws IOException Thrown when the connection fails
+	 */
 	public void connectionAttempt(String username, String ip, int port) throws IOException {
 		System.out.println("Attempting to connect...");
 		Player client = new Player(username, ip, port);
@@ -31,10 +41,19 @@ public class GameManager implements IPacketListener {
 		this.player = client;
 	}
 
+	/**
+	 * Assigns the ui to {@link GameUI} provided. Called when GameUI is created
+	 * @param ui The {@link GameUI} to assign
+	 */
 	public void assignGameUI(GameUI ui){
 		this.ui = ui;
 	}
 
+	/**
+	 * Join a team and a role and lets the server know
+	 * @param team The team to join
+	 * @param role The role to join
+	 */
 	public void joinTeam(Team team, Role role){
 		player.setTeam(team);
 		player.setRole(role);
@@ -43,15 +62,21 @@ public class GameManager implements IPacketListener {
 		ui.showRoleUI(role);
 	}
 
+	/**
+	 *
+	 * @return Returns the {@link Player} of the client
+	 */
 	public Player getPlayer() {
 		return player;
 	}
 
+	/**
+	 * Handles the received packets. Called when any {@link Packet} is received
+	 * @param p Packet that was received
+	 */
 	@Override
 	public void received(Packet p) {
-		if (p instanceof PacketClientChat packet){
-			System.out.println(packet.getSender() + ": " + packet.getMessage());
-		} else if (p instanceof PacketClientUpdatePlayers packet){
+		if (p instanceof PacketClientUpdatePlayers packet){
 			JTextArea label = packet.getTeam() == Team.RED ? packet.getRole() == Role.OPERATIVE ? ui.redOperatives : ui.redSpymasters : packet.getRole() == Role.OPERATIVE ? ui.blueOperatives : ui.blueSpymasters;
 			label.setText(packet.getPlayers());
 		} else if (p instanceof PacketClientCard packet){
@@ -59,7 +84,6 @@ public class GameManager implements IPacketListener {
 		} else if (p instanceof PacketClientCardReveal packet){
 	        ui.revealCard(packet.getX(), packet.getY(), packet.getColor().getColor());
 		} else if (p instanceof PacketClientTeamTurn packet){
-			ui.setTurn(packet.getTeam());
 			ui.clearHint();
 			ui.setAnnouncerText(packet.getTeam().getName() + " team is giving a hint...", packet.getTeam().getColor().getColor());
 		} else if (p instanceof PacketClientHint packet){
@@ -76,6 +100,12 @@ public class GameManager implements IPacketListener {
 		}
 	}
 
+	/**
+	 * Makes sure the wordAmountString is an integer, sends a hint and a number to the server, and runs a runnable on success
+	 * @param hint The hint to send
+	 * @param wordAmountString The amount of words associated with the hint
+	 * @param onSuccess The runnable to run on success
+	 */
 	// If wordAmountString is an integer, then onSuccess will run, which will clear the text fields.
 	public void sendHint(String hint, String wordAmountString, Runnable onSuccess){
 		int wordAmount;

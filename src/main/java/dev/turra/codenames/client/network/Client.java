@@ -9,6 +9,9 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
+/**
+ * Represents the client that is connected to the server.
+ */
 public class Client implements Runnable {
 
 	private String host;
@@ -21,14 +24,21 @@ public class Client implements Runnable {
 	public boolean running = false;
 	private IPacketListener listener;
 
+	/**
+	 * Initialize the client
+	 * @param host The IP address of the server
+	 * @param port The port of the server
+	 */
 	public Client(String host, int port) {
 		this.host = host;
 		this.port = port;
 	}
 
-	/* Create a connection between the client and the server
-		Assign the packet listener to GameManager to handle incoming packets
-	*/
+	/**
+	 * Create a connection between the client and the server
+	 * Assign the packet listener to GameManager to handle incoming packets
+	 * @throws IOException Thrown if the connection fails
+	 */
 	public final void connect() throws IOException{
 		socket = new Socket(host, port);
 		out = new ObjectOutputStream(socket.getOutputStream());
@@ -38,6 +48,9 @@ public class Client implements Runnable {
 		System.out.println("Connected to " + host + ":" + port);
 	}
 
+	/**
+	 * Close the connection between the client and the server
+	 */
 	public final void close() {
 		try {
 			running = false;
@@ -49,6 +62,10 @@ public class Client implements Runnable {
 		}
 	}
 
+	/**
+	 * Send a packet to the server
+	 * @param packet The packet to send
+	 */
 	public void sendPacket(Packet packet) {
 		try {
 			out.writeObject(packet);
@@ -57,6 +74,9 @@ public class Client implements Runnable {
 		}
 	}
 
+	/**
+	 * Handle incoming packets
+	 */
 	@Override
 	public final void run() {
 		try {
